@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import axios from 'axios';
 
-// --- VERIFICATION MODAL COMPONENT ---
+// --- VERIFICATION MODAL COMPONENT (UNCHANGED) ---
 const VerifyModal = ({ field, originalValue, onClose, onVerify }) => {
   const [inputValue, setInputValue] = useState(originalValue || "");
 
@@ -57,6 +57,7 @@ const VerifyModal = ({ field, originalValue, onClose, onVerify }) => {
 function App() {
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);
+  const [docType, setDocType] = useState('printed'); // 🌟 NEW STATE: To hold selected document type
   const [formData, setFormData] = useState({});
   const [originalData, setOriginalData] = useState({}); 
   const [loading, setLoading] = useState(false);
@@ -88,6 +89,8 @@ function App() {
 
     const formDataUpload = new FormData();
     formDataUpload.append("file", file);
+    // 🌟 CRITICAL CHANGE: Append the selected docType to the form data
+    formDataUpload.append("doc_type", docType); 
 
     try {
       const response = await axios.post("http://127.0.0.1:8000/extract", formDataUpload);
@@ -109,6 +112,7 @@ function App() {
     }
   };
 
+  // ... (handleVerifySubmit, downloadData, calculateOverallScore functions are unchanged) ...
   const handleVerifySubmit = async (userValue) => {
     if (!verifyingField) return;
     const key = verifyingField;
@@ -141,11 +145,13 @@ function App() {
   };
 
   const calculateOverallScore = () => {
-     const scores = Object.values(verificationResults).map(r => r.score);
-     if (scores.length === 0) return 0;
-     const total = scores.reduce((a, b) => a + b, 0);
-     return Math.round(total / scores.length);
+      const scores = Object.values(verificationResults).map(r => r.score);
+      if (scores.length === 0) return 0;
+      const total = scores.reduce((a, b) => a + b, 0);
+      return Math.round(total / scores.length);
   };
+  // ... (end of handleVerifySubmit, downloadData, calculateOverallScore) ...
+
 
   const { SCAN_QUALITY, ...displayFields } = formData;
   const isDataEmpty = Object.keys(formData).length === 0;
@@ -153,19 +159,19 @@ function App() {
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex flex-col font-[Roboto] text-slate-800">
       
-      {/* HEADER */}
+      {/* HEADER (UNCHANGED) */}
       <header className="bg-white px-8 py-4 shadow-sm z-50 flex justify-between items-center sticky top-0 border-b border-slate-100">
         <div className="flex items-center gap-3">
            <div className="w-9 h-9 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-xl shadow-indigo-200 shadow-lg">X</div>
            <h1 className="text-xl tracking-tight text-slate-600 font-medium">Intelli<span className="font-bold text-slate-900">Xtract</span></h1>
         </div>
         <div className="flex gap-3">
-            <button onClick={() => setShowReport(true)} disabled={isDataEmpty || loading} className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all border ${isDataEmpty ? "bg-slate-50 text-slate-300 border-slate-200 cursor-not-allowed" : "bg-white text-indigo-600 border-indigo-100 hover:bg-indigo-50"}`}>
-              VIEW REPORT
-            </button>
-            <button onClick={downloadData} disabled={isDataEmpty || loading} className={`flex items-center gap-2 px-5 py-2 rounded-lg text-xs font-bold transition-all ${isDataEmpty ? "bg-slate-100 text-slate-400 cursor-not-allowed" : "bg-slate-900 text-white hover:bg-slate-800 shadow-lg shadow-slate-200"}`}>
-              EXPORT
-            </button>
+           <button onClick={() => setShowReport(true)} disabled={isDataEmpty || loading} className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all border ${isDataEmpty ? "bg-slate-50 text-slate-300 border-slate-200 cursor-not-allowed" : "bg-white text-indigo-600 border-indigo-100 hover:bg-indigo-50"}`}>
+             VIEW REPORT
+           </button>
+           <button onClick={downloadData} disabled={isDataEmpty || loading} className={`flex items-center gap-2 px-5 py-2 rounded-lg text-xs font-bold transition-all ${isDataEmpty ? "bg-slate-100 text-slate-400 cursor-not-allowed" : "bg-slate-900 text-white hover:bg-slate-800 shadow-lg shadow-slate-200"}`}>
+             EXPORT
+           </button>
         </div>
       </header>
 
@@ -176,6 +182,21 @@ function App() {
         <div className="w-1/2 bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col transition-all">
           <div className="flex justify-between items-center mb-4">
              <h2 className="text-sm font-bold text-slate-400 uppercase tracking-widest">Source Document</h2>
+             {/* 🌟 NEW DROPDOWN: Document Type Selector 🌟 */}
+             <div className="flex items-center gap-2">
+                <label htmlFor="docTypeSelector" className="text-xs font-medium text-slate-500">Language:</label>
+                <select 
+                    id="docTypeSelector"
+                    value={docType}
+                    onChange={(e) => setDocType(e.target.value)}
+                    className="p-1.5 rounded-lg border border-slate-300 text-xs font-medium bg-white focus:ring-indigo-500 focus:border-indigo-500"
+                    disabled={loading}
+                >
+                    <option value="printed">English (Printed)</option>
+                    <option value="arabic">Arabic (Printed)</option>
+                    {/* Placeholder for future: <option value="handwritten">English (Handwritten)</option> */}
+                </select>
+             </div>
           </div>
           <div className="flex-1 bg-slate-50 rounded-xl border-2 border-dashed border-slate-200 flex items-center justify-center relative overflow-hidden group hover:border-indigo-300 transition-colors">
             {preview ? <img src={preview} className="object-contain max-h-full" /> : <div className="text-center"><div className="w-16 h-16 bg-white text-indigo-500 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl shadow-sm border border-slate-100">📄</div><p className="text-slate-500 text-sm font-medium">Upload Document</p></div>}
@@ -188,7 +209,7 @@ function App() {
           </div>
         </div>
 
-        {/* RIGHT PANEL */}
+        {/* RIGHT PANEL (UNCHANGED LOGIC, just the UI layout remains the same) */}
         <div className="w-1/2 bg-white rounded-2xl shadow-sm border border-slate-200 p-0 flex flex-col relative overflow-hidden">
           {loading ? (
             <div className="flex-1 flex flex-col items-center justify-center text-center p-10 animate-fade-in">
@@ -247,6 +268,7 @@ function App() {
         </div>
       </div>
 
+      {/* MODALS (UNCHANGED) */}
       {/* TRUST REPORT MODAL */}
       {showReport && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">

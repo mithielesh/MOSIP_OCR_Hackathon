@@ -46,7 +46,8 @@ async def extract_text_api(
     doc_type: str = Form("printed") 
 ):
     """
-    Step 1: Upload Image -> Get JSON Data
+    API 1: OCR Extraction API
+    Handles file upload and passes the doc_type (e.g., "printed", "arabic") to the engine.
     """
     os.makedirs("uploads", exist_ok=True)
     temp_filename = f"uploads/{file.filename}"
@@ -55,10 +56,8 @@ async def extract_text_api(
     with open(temp_filename, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
     
-    # Call the optimized Engine
-    # Note: We are currently ignoring doc_type in the call because 
-    # the engine is optimized for "Printed" forms right now.
-    json_data = ocr_engine.extract_data(temp_filename)
+    # PASSING THE doc_type HERE IS ESSENTIAL for multilingual support
+    json_data = ocr_engine.extract_data(temp_filename, doc_type=doc_type)
     
     return {
         "filename": file.filename,
@@ -70,7 +69,7 @@ async def extract_text_api(
 @app.post("/verify")
 async def verify_single_field(data: SingleFieldRequest):
     """
-    Step 2a: Verify a single field (e.g., just the Name)
+    API 2: Data Verification API (Single Field)
     """
     result = verifier.verify_field(
         data.field_name, 
@@ -82,17 +81,12 @@ async def verify_single_field(data: SingleFieldRequest):
 @app.post("/verify-full")
 async def verify_full_form(data: FullFormVerificationRequest):
     """
-    Step 2b: Verify the ENTIRE form in one click.
-    Compares the OCR JSON against the User Input JSON.
+    API 2: Data Verification API (Bulk Form Verification)
     """
     verification_report = {}
     
-    # Iterate through the user's input keys (Name, Age, etc.)
     for key, user_val in data.user_input_data.items():
-        # Find corresponding key in OCR data (case-insensitive search is safer)
         extracted_val = data.extracted_data.get(key, "")
-        
-        # Verify this specific field
         verification_report[key] = verifier.verify_field(key, extracted_val, user_val)
         
     return {
