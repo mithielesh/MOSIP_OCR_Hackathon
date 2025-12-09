@@ -1,0 +1,86 @@
+# Root .gitignore for MOSIP_OCR_Hackathon
+
+### OS / Editor
+# macOS
+.DS_Store
+# Windows
+Thumbs.db
+# VSCode
+.vscode/
+# JetBrains IDEs
+.idea/
+
+### Python
+__pycache__/
+*.py[cod]
+*$py.class
+# virtual environments
+venv/
+env/
+.venv/
+venv\
+ENV/
+env.bak/
+
+# Distribution / Packaging
+*.egg-info/
+dist/
+build/
+*.egg
+*.whl
+pip-wheel-metadata/
+
+# Pytest / Coverage
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Logs and runtime
+*.log
+logs/
+nohup.out
+gunicorn.log
+*.sqlite3
+
+# Python env files
+*.env
+*.env.*
+env.*
+
+### Node / frontend
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-lock.yaml
+/.vite
+dist/
+build/
+
+### Uploads / Generated assets
+# Ignore uploads and generated artifacts that are runtime-specific
+backend/uploads/
+backend/upload/uploads/
+
+### Notebook
+.ipynb_checkpoints
+
+### Misc
+*.swp
+*.swo
+.cache/
+coverage/
+Thumbs.db
+desktop.ini
+DS_Store
+
+# Keep test samples and source files committed
+!test_samples/
+!frontend/public/
+
+# Keep environment/credentials files out of repo
+# Add any local secrets here
+secrets/
+*.pem
+*.key
